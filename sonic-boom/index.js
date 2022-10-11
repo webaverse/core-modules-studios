@@ -2,7 +2,8 @@ import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
-const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+let baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+baseUrl = baseUrl.replace(/\/+$/, '');
 
 export default () => {
   const app = useApp();
