@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
+const {useThreeUtils, useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -10,6 +9,8 @@ const {useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
 /* const menuWidth = cardWidth * cardsBufferFactor * 4;
 const menuHeight = cardHeight * cardsBufferFactor * 4;
 const menuRadius = 0.025; */
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();

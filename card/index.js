@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useMaterials, useCardsManager} = metaversefile;
+const {useApp, useThreeUtils, useMaterials, useCardsManager} = metaversefile;
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 const dropItemSize = 0.2;
 

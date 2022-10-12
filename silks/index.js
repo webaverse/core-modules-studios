@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
+const {useFrame, useMaterials, useLocalPlayer, useThreeUtils} = metaversefile;
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 const upVector = new THREE.Vector3(0, 1, 0);
 

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useCleanup, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
+const {useApp, useFrame, useThreeUtils, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;

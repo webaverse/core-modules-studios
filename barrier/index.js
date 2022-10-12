@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import easing from './easing.js';
 import metaversefile from 'metaversefile';
-// import {chunkWorldSize} from '../../procgen/map-gen';
-const {useApp, useLocalPlayer, useProcGen, useGeometries, useCamera, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
+const {useApp, useThreeUtils, useLocalPlayer, useProcGen, useGeometries, useCamera, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();

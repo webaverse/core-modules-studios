@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup, createMapChunk, createMapChunkMesh} = metaversefile;
+const {useApp, useFrame, usePhysics, useProcGen, useThreeUtils, useCleanup} = metaversefile;
+
+const {BufferGeometryUtils} = useThreeUtils();
 
 // const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 

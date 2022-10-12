@@ -1,12 +1,22 @@
 import {Vector3, Matrix4, Mesh, BoxGeometry, PlaneGeometry, DoubleSide, sRGBEncoding, MeshBasicMaterial, NearestFilter, Texture} from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 // import {scene, renderer, camera, runtime, world, physics, ui, app, appManager} from 'app';
 import metaversefile from 'metaversefile';
-const {useApp, useActivate, removeApp} = metaversefile;
+const {useApp, useThreeUtils, useActivate, removeApp} = metaversefile;
+
+//
+
+const {BufferGeometryUtils} = useThreeUtils();
+
+//
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\/]*$/, '$1');
+
+//
+
 const imagePath = baseUrl + 'textures/remove.svg';
 const redColor = 0xef5350;
+
+//
 
 const geometry = BufferGeometryUtils.mergeBufferGeometries([
   new BoxGeometry(1, 0.1, 0.1 + 0.01)
