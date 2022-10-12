@@ -1,19 +1,14 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// import easing from './easing.js';
 import metaversefile from 'metaversefile';
-const {useApp, useGeometryUtils, useMaterials, useCardsManager} = metaversefile;
-
-//
+const {useApp, useFrame, useLocalPlayer, useMaterials, useCardsManager} = metaversefile;
 
 const dropItemSize = 0.2;
+
 const cardWorldWidth = 0.063 * 3;
 const cardWorldHeight = cardWorldWidth / 2.5 * 3.5;
 const width = 520;
-
-//
-
-const geometryUtils = useGeometryUtils();
-
-//
 
 function getCardFrontTexture(appUrl) {
   const cardsManager = useCardsManager();
@@ -79,7 +74,7 @@ const _makeCardMesh = ({
   _setSideAttribute(frontGeometry, 0);
   _setSideAttribute(backGeometry, 1);
 
-  const geometry = geometryUtils.mergeBufferGeometries([
+  const geometry = BufferGeometryUtils.mergeBufferGeometries([
     frontGeometry,
     backGeometry,
   ]);

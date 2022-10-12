@@ -1,16 +1,21 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useGeometryUtils, useFrame, useMaterials, useDropManager, useDefaultModules} = metaversefile;
-
-//
+const {useApp, useFrame, useCleanup, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
-//
+// const cardWidth = 0.063;
+// const cardHeight = cardWidth / 2.5 * 3.5;
+// const cardHeight = cardWidth;
+// const cardsBufferFactor = 1.1;
+// const menuWidth = cardWidth * cardsBufferFactor * 4;
+// const menuHeight = cardHeight * cardsBufferFactor * 4;
+// const menuRadius = 0.025;
 
-const geometryUtils = useGeometryUtils();
-
-//
+/* function mod(a, n) {
+  return (a % n + n) % n;
+} */
 
 const numCylinders = 3;
 const minRadius = 0.4;
@@ -22,10 +27,10 @@ const pickUpDistance = 1;
 
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
-// const localEuler = new THREE.Euler();
+const localEuler = new THREE.Euler();
 
-// const zeroVector = new THREE.Vector3(0, 0, 0);
-// const gravity = new THREE.Vector3(0, -9.8, 0);
+const zeroVector = new THREE.Vector3(0, 0, 0);
+const gravity = new THREE.Vector3(0, -9.8, 0);
 
 const makeSeamlessNoiseTexture = () => {
   const img = new Image();
@@ -117,7 +122,7 @@ function createCylindersGeometry(front) {
     }
   }
 
-  const geometry = geometryUtils.mergeBufferGeometries(geometries);
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   return geometry;
 }
 function createExplosionGeometry(front) {
@@ -149,7 +154,7 @@ function createExplosionGeometry(front) {
   if (!front) {
     geometries.reverse();
   }
-  const g = geometryUtils.mergeBufferGeometries(geometries);
+  const g = BufferGeometryUtils.mergeBufferGeometries(geometries);
   const instances = new Float32Array(g.attributes.position.count).fill(-1);
   g.setAttribute('instance', new THREE.BufferAttribute(instances, 1));
   return g;
@@ -297,11 +302,11 @@ const _makeCometMesh = () => {
   const object = new THREE.Object3D();
 
   const shockwaveGeometry = createShockwaveGeometry();
-  const frontGeometry = geometryUtils.mergeBufferGeometries([
+  const frontGeometry = BufferGeometryUtils.mergeBufferGeometries([
     shockwaveGeometry,
     createCylindersGeometry(true),
   ]);
-  const backGeometry = geometryUtils.mergeBufferGeometries([
+  const backGeometry = BufferGeometryUtils.mergeBufferGeometries([
     shockwaveGeometry,
     createCylindersGeometry(false),
   ]);
