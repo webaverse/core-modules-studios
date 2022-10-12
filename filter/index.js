@@ -1,9 +1,12 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, usePhysics, useProcGen, addTrackedApp, useDefaultModules, useCleanup, createMapChunk, createMapChunkMesh} = metaversefile;
+const {useApp, useGeometryUtils, useFrame, usePhysics, useProcGen, useCleanup} = metaversefile;
 
-// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+//
+
+const geometryUtils = useGeometryUtils();
+
+//
 
 const localVector = new THREE.Vector3();
 const localVector2 = new THREE.Vector3();
@@ -361,7 +364,7 @@ export default () => {
         }
         return quantizeGeometry(g, voxelWorldSize);
       });
-      let geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+      let geometry = geometryUtils.mergeBufferGeometries(geometries);
       geometry = addPositionUvs(geometry);
       // geometry = addBarycentricAttributes(geometry);
 

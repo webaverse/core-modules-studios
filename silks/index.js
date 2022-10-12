@@ -1,7 +1,12 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
+const {useFrame, useGeometryUtils, useMaterials, useLocalPlayer, useMathUtils} = metaversefile;
+
+//
+
+const geometryUtils = useGeometryUtils();
+
+//
 
 const upVector = new THREE.Vector3(0, 1, 0);
 
@@ -124,7 +129,7 @@ const _makeSilksMesh = () => {
   // _incrementUvs(geometry2, new THREE.Vector2(0, 1));
   // _setOffsets(geometry1, -1);
   // _setOffsets(geometry2, 1);
-  const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry1, geometry2]);
+  const geometry = geometryUtils.mergeBufferGeometries([geometry1, geometry2]);
   // _setOffsets(geometry, 1);
   
   const material = new WebaverseShaderMaterial({

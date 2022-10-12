@@ -1,7 +1,12 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useMaterials, useLocalPlayer} = metaversefile;
+const {useApp, useGeometryUtils, useFrame, useMaterials, useLocalPlayer} = metaversefile;
+
+//
+
+const geometryUtils = useGeometryUtils();
+
+//
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -55,7 +60,7 @@ function createCylindersGeometry(front) {
     }
   }
 
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const geometry = geometryUtils.mergeBufferGeometries(geometries);
   return geometry;
 };
 const vertexShader = `\

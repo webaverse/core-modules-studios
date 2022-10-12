@@ -1,20 +1,13 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useLocalPlayer, useProcGen, useGeometries, useCamera, useMaterials, useFrame, useActivate, usePhysics, useCleanup} = metaversefile;
+const {useApp} = metaversefile;
 
-// const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
+//
 
 const localVector = new THREE.Vector3();
-const localVector2 = new THREE.Vector3();
-// const localVector3 = new THREE.Vector3();
-// const localVector4 = new THREE.Vector3();
-const localVector5 = new THREE.Vector3();
-const localVector2D = new THREE.Vector2();
-// const localBox = new THREE.Box3();
-const localLine = new THREE.Line3();
 const localMatrix = new THREE.Matrix4();
-const oneVector = new THREE.Vector3(1, 1, 1);
+
+//
 
 const _makePlaneGeometry = (width, height) => {
   return new THREE.PlaneBufferGeometry(width, height)
@@ -50,14 +43,9 @@ const _makeAreaMesh = (width, height, depth) => {
       .applyMatrix4(localMatrix.makeTranslation(0, 0, width/2))
       .applyMatrix4(localMatrix.makeRotationAxis(localVector.set(0, 1, 0), Math.PI*3/2)),
   ];
-  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
   const material = new THREE.MeshNormalMaterial({
-    side: THREE.DoubleSide,
+    side: THRE,
     opacity: 0.5,
-    transparent: true,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  return mesh;
 };
 
 export default () => {

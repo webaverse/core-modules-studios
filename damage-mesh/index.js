@@ -1,8 +1,5 @@
 import * as THREE from 'three';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-// import easing from './easing.js';
 import metaversefile from 'metaversefile';
-// import {getCaretAtPoint} from 'troika-three-text';
 const {useApp, useInternals, useMaterials, useFrame, /*usePhysics,*/ useText} = metaversefile;
 
 const localVector4D = new THREE.Vector4();

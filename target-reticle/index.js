@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useFrame, useMaterials, useCamera, useLocalPlayer} = metaversefile;
+const {useFrame, useGeometryUtils, useMaterials, useCamera, useLocalPlayer} = metaversefile;
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -14,6 +13,8 @@ const menuRadius = 0.025; */
 const localVector = new THREE.Vector3();
 const localVector2D = new THREE.Vector2();
 const localQuaternion = new THREE.Quaternion();
+
+const geometryUtils = useGeometryUtils();
 
 /* const targetTypes = [
   'object',
@@ -134,7 +135,7 @@ function createTargetReticleGeometry() {
       new THREE.Vector2(1, 0)
     ),
   ];
-  return BufferGeometryUtils.mergeBufferGeometries(geometries);
+  return geometryUtils.mergeBufferGeometries(geometries);
 };
 function createTargetReticleGeometries(count) {
   const geometry = createTargetReticleGeometry();
@@ -142,7 +143,7 @@ function createTargetReticleGeometries(count) {
   for (let i = 0; i < count; i++) {
     geometries[i] = geometry;
   }
-  const result = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const result = geometryUtils.mergeBufferGeometries(geometries);
   result.drawStride = geometry.attributes.position.count;
   return result;
 }
