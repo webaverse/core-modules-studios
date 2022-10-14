@@ -28,16 +28,11 @@ const eKeyMaterial = (() => {
   texture.encoding = THREE.sRGBEncoding;
   texture.anisotropy = 16;
   (async () => {
-    const img = await new Promise((accept, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}e-key.png`;
-    });
-    texture.image = img;
+    const src = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}e-key.png`;
+    const res = await fetch(src);
+    const blob = await res.blob();
+    const imageBitmap = await createImageBitmap(blob);
+    texture.image = imageBitmap;
     texture.needsUpdate = true;
   })();
   const material = new THREE.MeshBasicMaterial({
