@@ -19,25 +19,28 @@ export default () => {
   useExport(async ({mimeType, args}) => {
     console.log('got mime type', JSON.stringify(mimeType), JSON.stringify(args));
 
+    const {srcUrl, quality} = args;
+    const arrayBuffer = await _fetchArrayBuffer(srcUrl);
+
+    const avatarOptimizer = useAvatarOptimizer();
+    const {
+      createSpriteAvatarMesh,
+      crunchAvatarModel,
+      optimizeAvatarModel,
+    } = avatarOptimizer;
+
+    if (mimeType === 'multipart/form-data') {
+      if (quality === 1) {
+        const {
+          textureBlobs,
+        } = await createSpriteAvatarMesh({arrayBuffer, srcUrl});
+        return textureBlobs;
+      } else {
+        return new Response('Quality not supported', {status: 404});
+      }
+    }
     if (mimeType === 'application/octet-stream') {
-      const {srcUrl, quality} = args;
-      const arrayBuffer = await _fetchArrayBuffer(srcUrl);
-
-      const avatarOptimizer = useAvatarOptimizer();
-      const {
-        createSpriteAvatarMesh,
-        crunchAvatarModel,
-        optimizeAvatarModel,
-      } = avatarOptimizer;
-
       switch (quality) {
-        /*case 1: {
-          const {
-            textureImages,
-          } = await createSpriteAvatarMesh({arrayBuffer, srcUrl});
-          const blob = new Blob([textureImages]);
-          return blob;
-        }*/
         case 2: {
           const {
             glbData
