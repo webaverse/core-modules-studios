@@ -189,7 +189,7 @@ const _makeTargetReticleMesh = () => {
       precision highp float;
       precision highp int;
 
-      // #define PI 3.1415926535897932384626433832795
+      #define PI 3.1415926535897932384626433832795
 
       attribute vec3 offset;
       attribute vec4 quaternion;
