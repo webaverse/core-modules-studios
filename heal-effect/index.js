@@ -1,19 +1,26 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternals} = metaversefile;
+const {useApp, useFrame, useInternals, useKtx2Util} = metaversefile;
 import {WebaverseShaderMaterial} from '../../materials.js';
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
-const textureLoader = new THREE.TextureLoader();
-const sparkle = textureLoader.load(`${baseUrl}/textures/sparkle.png`);
-const circle = textureLoader.load(`${baseUrl}/textures/Circle18.png`);
-const splashTexture12 = textureLoader.load(`${baseUrl}/textures/splash12.png`);
+const {loadKtx2TextureUrl} = useKtx2Util();
+let sparkle;
+let circle;
+let splashTexture12;
 let playEffect = false;
 export default () => {
   let player = null;
   const app = useApp();
   const {camera} = useInternals();
+
+  (async () => {
+    sparkle = await loadKtx2TextureUrl(`${baseUrl}/textures/sparkle.ktx2`);
+    circle = await loadKtx2TextureUrl(`${baseUrl}/textures/Circle18.ktx2`);
+    splashTexture12 = await loadKtx2TextureUrl(`${baseUrl}/textures/splash12.ktx2`);
+  })();
+
   app.playEffect = (p) =>{
     playEffect = true;
     player = p;
