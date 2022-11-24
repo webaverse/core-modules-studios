@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals, useKtx2Util} = metaversefile;
 let baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 baseUrl = baseUrl.replace(/\/+$/, '');
 
@@ -10,17 +10,34 @@ export default () => {
   const localPlayer = app.getComponent('player') || useLocalPlayer();
   const cameraManager = useCameraManager();
   const {renderer, camera} = useInternals();
-  let narutoRunTime=0; 
+  const { loadKtx2TextureUrl } = useKtx2Util();
+
+  let narutoRunTime=0;
   let lastStopSw=0;
-  const textureLoader = new THREE.TextureLoader()
-  const wave2 = textureLoader.load(`${baseUrl}/textures/wave2.jpeg`)
-  const wave20 = textureLoader.load(`${baseUrl}/textures/wave20.png`)
-  const wave9 = textureLoader.load(`${baseUrl}/textures/wave9.png`)
-  const textureR = textureLoader.load(`${baseUrl}/textures/r.jpg`);
-  const textureG = textureLoader.load(`${baseUrl}/textures/g.jpg`);
-  const textureB = textureLoader.load(`${baseUrl}/textures/b.jpg`);
-  const electronicballTexture = textureLoader.load(`${baseUrl}/textures/electronic-ball2.png`);
-  const noiseMap = textureLoader.load(`${baseUrl}/textures/noise.jpg`);
+
+  let wave2;
+  let wave20;
+  let wave9;
+  let textureR;
+  let textureG;
+  let textureB;
+  let electronicballTexture;
+  let noiseMap;
+  let texture8;
+  let texture11;
+
+  (async () => {
+    wave2 = await loadKtx2TextureUrl(`${baseUrl}/textures/wave2.ktx2`)
+    wave20 = await loadKtx2TextureUrl(`${baseUrl}/textures/wave20.ktx2`)
+    wave9 = await loadKtx2TextureUrl(`${baseUrl}/textures/wave9.ktx2`)
+    textureR = await loadKtx2TextureUrl(`${baseUrl}/textures/r.ktx2`);
+    textureG = await loadKtx2TextureUrl(`${baseUrl}/textures/g.ktx2`);
+    textureB = await loadKtx2TextureUrl(`${baseUrl}/textures/b.ktx2`);
+    electronicballTexture = await loadKtx2TextureUrl(`${baseUrl}/textures/electronic-ball2.ktx2`);
+    noiseMap = await loadKtx2TextureUrl(`${baseUrl}/textures/noise.ktx2`);
+    texture8 = await loadKtx2TextureUrl(`${baseUrl}/textures/texture8.ktx2`);
+    texture11 = await loadKtx2TextureUrl(`${baseUrl}/textures/texture11.ktx2`);
+  })();
 
     let currentDir=new THREE.Vector3();
     //################################################ trace narutoRun Time ########################################
@@ -1495,8 +1512,6 @@ export default () => {
         instGeom.setAttribute("instAngle", new THREE.InstancedBufferAttribute(new Float32Array(instAngle), 3));
         instGeom.instanceCount = num;
 
-        const textureLoader = new THREE.TextureLoader()
-        const texture = textureLoader.load(`${baseUrl}/textures/texture8.png`)
         const electricityMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 sphereNum: { value: num },
@@ -1507,7 +1522,7 @@ export default () => {
                 glowIndex: { value: 0 },
                 uTexture: {
                     type: "t",
-                    value: texture
+                    value: texture8,
                 },
 
             },
@@ -1686,8 +1701,6 @@ export default () => {
         instGeom.setAttribute("instAngle", new THREE.InstancedBufferAttribute(new Float32Array(instAngle), 3));
         instGeom.instanceCount = num;
 
-        const textureLoader = new THREE.TextureLoader()
-        const texture = textureLoader.load(`${baseUrl}/textures/texture11.png`)
         const electricityMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 sphereNum: { value: num },
@@ -1698,7 +1711,7 @@ export default () => {
                 glowIndex: { value: 0 },
                 uTexture: {
                     type: "t",
-                    value: texture
+                    value: texture11
                 },
 
             },
