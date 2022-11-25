@@ -13,29 +13,34 @@ export default () => {
   let lastStopSw = 0;
 
   const {loadKtx2TextureUrl} = useKtx2Util();
-  const nameSpec = [
-    'wave2',
-    'wave20',
-    'wave9',
-    'electronic-ball2',
-    'noise',
-    'electricityTexture1',
-    'electricityTexture2',
-    'trail',
-    'mask',
-    'voronoiNoise',
-  ]
-  const particleTexture = [];
-  (async () => {
-    for(const name of nameSpec){
-        const texture = await loadKtx2TextureUrl(`${baseUrl}textures/${name}.ktx2`);
-        if (name === 'trail' || name === 'voronoiNoise') {
+  
+  const particleTextures = [
+    {name: 'wave2', texture: null},
+    {name: 'wave20', texture: null},
+    {name: 'wave9', texture: null},
+    {name: 'electronic-ball2', texture: null},
+    {name: 'noise', texture: null},
+    {name: 'electricityTexture1', texture: null},
+    {name: 'electricityTexture2', texture: null},
+    {name: 'trail', texture: null},
+    {name: 'mask', texture: null},
+    {name: 'voronoiNoise', texture: null},
+  ];
+  const texturesPromise = (async () => {
+    for(const particleTexture of particleTextures){
+        const texture = await loadKtx2TextureUrl(`${baseUrl}textures/${particleTexture.name}.ktx2`);
+        if (particleTexture.name === 'trail' || particleTexture.name === 'voronoiNoise') {
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         }
-        particleTexture.push(texture);
+        particleTexture.texture = texture;
     }
   })();
-  
+
+  const waitForTextures = () => texturesPromise;
+	
+  const getTexureByName = (textureName) => {
+    return particleTextures.find(x => x.name === textureName).texture;
+  }
   
   
   
@@ -216,6 +221,12 @@ export default () => {
         // material.onBeforeCompile = () => {
         //     console.log('compile frontwave material')
         // }
+        const setTexure = async () => {
+            await waitForTextures();
+            material.uniforms.waveTexture.value = getTexureByName('wave2');
+            material.uniforms.waveTexture2.value = getTexureByName('wave20');
+        };
+        setTexure();
         material.freeze();
         
         const group = new THREE.Group();
@@ -223,8 +234,6 @@ export default () => {
         renderer.compile(group, camera)
         let sonicBoomInApp = false;
         useFrame(({timestamp}) => {
-            
-        
             if(narutoRunTime>10){
                 //console.log('sonic-boom-frontwave');
                 if(!sonicBoomInApp){
@@ -245,10 +254,6 @@ export default () => {
 
                 group.scale.set(1, 1, 1);
                 material.uniforms.uTime.value = timestamp / 5000;
-                if(!material.uniforms.waveTexture.value)
-                    material.uniforms.waveTexture.value = particleTexture[nameSpec.indexOf('wave2')];
-                if(!material.uniforms.waveTexture2.value)
-                    material.uniforms.waveTexture2.value = particleTexture[nameSpec.indexOf('wave20')];
             }
             else{
                 if(sonicBoomInApp){
@@ -337,7 +342,11 @@ export default () => {
         //     console.log('compile wind material')
         // }
         renderer.compile(group, camera)
-        
+        const setTexure = async () => {
+            await waitForTextures();
+            windMaterial.uniforms.perlinnoise.value = getTexureByName('wave2');
+        };
+        setTexure();
         let sonicBoomInApp=false;
         useFrame(({timestamp}) => {
             
@@ -358,8 +367,6 @@ export default () => {
                 group.position.z -= 2.2 * currentDir.z;
                 group.scale.set(1, 1, 1);
                 windMaterial.uniforms.uTime.value = timestamp / 10000;
-                if(!windMaterial.uniforms.perlinnoise.value)
-                    windMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave2')];
             }
             else{
                 if(sonicBoomInApp){
@@ -537,6 +544,11 @@ export default () => {
         // flameMaterial.onBeforeCompile = () => {
         //     console.log('compile flame material')
         // }
+        const setTexure = async () => {
+            await waitForTextures();
+            flameMaterial.uniforms.perlinnoise.value = getTexureByName('wave9');
+        };
+        setTexure();
         renderer.compile(group, camera)
         let playerRotation = [0, 0, 0, 0, 0];
         let sonicBoomInApp = false;
@@ -564,8 +576,7 @@ export default () => {
                 group.position.x -= 2.2 * currentDir.x;
                 group.position.z -= 2.2 * currentDir.z;
                 flameMaterial.uniforms.uTime.value = timestamp / 20000;
-                if(!flameMaterial.uniforms.perlinnoise.value)
-                    flameMaterial.uniforms.perlinnoise.value = particleTexture[nameSpec.indexOf('wave9')];
+                
                 if(Math.abs(localPlayer.rotation.x) > 0){
                     let temp = localPlayer.rotation.y + Math.PI;
                     for(let i = 0; i < 5; i++){
@@ -728,6 +739,14 @@ export default () => {
     //   material.onBeforeCompile = () => {
     //         console.log('compile trail material')
     //   }
+      const setTexure = async () => {
+        await waitForTextures();
+        
+        material.uniforms.trailTexture.value = getTexureByName('trail');
+        material.uniforms.voronoiNoiseTexture.value = getTexureByName('voronoiNoise');
+        material.uniforms.maskTexture.value = getTexureByName('mask');
+      };
+      setTexure();
       renderer.compile(plane, camera)
       plane.position.y = 1;
       plane.frustumCulled = false;
@@ -808,15 +827,6 @@ export default () => {
             plane.geometry.attributes.position.needsUpdate = true;
             
             material.uniforms.uTime.value = timestamp / 1000;
-            if(!material.uniforms.trailTexture.value){
-                material.uniforms.trailTexture.value = particleTexture[nameSpec.indexOf('trail')];
-            }
-            if(!material.uniforms.voronoiNoiseTexture.value){
-                material.uniforms.voronoiNoiseTexture.value = particleTexture[nameSpec.indexOf('voronoiNoise')];
-            }
-            if(!material.uniforms.maskTexture.value){
-                material.uniforms.maskTexture.value = particleTexture[nameSpec.indexOf('mask')];
-            }
                 
         }
         else {
@@ -1235,6 +1245,12 @@ export default () => {
         //     console.log('compile electricity material')
         // }
         renderer.compile(group, camera)
+        const setTexure = async () => {
+            await waitForTextures();
+            material.uniforms.electricityTexture1.value = getTexureByName('electricityTexture1');
+            material.uniforms.electricityTexture2.value = getTexureByName('electricityTexture2');
+        };
+        setTexure();
        
         let sonicBoomInApp = false;
         useFrame(({timestamp}) => {
@@ -1279,12 +1295,7 @@ export default () => {
                 }
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-                if(!material.uniforms.electricityTexture1.value){
-                    material.uniforms.electricityTexture1.value = particleTexture[nameSpec.indexOf('electricityTexture1')];
-                }
-                if(!material.uniforms.electricityTexture2.value){
-                    material.uniforms.electricityTexture2.value = particleTexture[nameSpec.indexOf('electricityTexture2')];
-                }
+                
                 const scalesAttribute = electricity.geometry.getAttribute('scales');
                 const textureRotationAttribute = electricity.geometry.getAttribute('textureRotation');
                 scalesAttribute.setX(0, 0.8 + Math.random() * 0.2);
@@ -1426,7 +1437,12 @@ export default () => {
         // material.onBeforeCompile = () => {
         //     console.log('compile electricityBall material')
         // }
-        renderer.compile(group, camera)
+        renderer.compile(group, camera);
+        const setTexure = async () => {
+            await waitForTextures();
+            material.uniforms.electronicballTexture.value = getTexureByName('electronic-ball2');
+        };
+        setTexure();
         for(let i = 0; i< particleCount; i++){
             info.velocity[i] = new THREE.Vector3();
         }
@@ -1489,9 +1505,7 @@ export default () => {
 
                 material.uniforms.uTime.value = timestamp / 1000;
                 material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-                if(!material.uniforms.electronicballTexture.value){
-                    material.uniforms.electronicballTexture.value = particleTexture[nameSpec.indexOf('electronic-ball2')];
-                }
+                
             }
             else{
                 if(sonicBoomInApp){
@@ -1826,6 +1840,11 @@ export default () => {
             
     
         })();
+        const setTexure = async () => {
+            await waitForTextures();
+            material.uniforms.noiseMap.value = getTexureByName('noise');
+        };
+        setTexure();
         
         const euler = new THREE.Euler();
         const quaternion = new THREE.Quaternion();
@@ -1884,11 +1903,7 @@ export default () => {
                 opacityAttribute.needsUpdate = true;
                 brokenAttribute.needsUpdate = true;
                 quaternionAttribute.needsUpdate = true;
-                if(!material.uniforms.noiseMap.value){
-                    material.uniforms.noiseMap.value = particleTexture[nameSpec.indexOf('noise')];
-                }
                 
-    
             }
             if(lastStopSw === 1  && narutoRunTime === 0){
                 lastStopSw = 0;
