@@ -7,7 +7,6 @@ const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const {loadKtx2TextureUrl} = useKtx2Util();
 
-const textureLoader = new THREE.TextureLoader();
 let sparkle;
 let circle;
 let splashTexture12;
