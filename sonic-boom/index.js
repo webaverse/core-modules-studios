@@ -14,20 +14,20 @@ export default () => {
   const textureLoader = new THREE.TextureLoader()
 
   const particleTextures = [
-    {name: 'wave2', texture: null},
-    {name: 'wave20', texture: null},
-    {name: 'wave9', texture: null},
-    {name: 'electronic-ball2', texture: null},
-    {name: 'noise', texture: null},
-    {name: 'electricityTexture1', texture: null},
-    {name: 'electricityTexture2', texture: null},
-    {name: 'trail', texture: null},
-    {name: 'mask', texture: null},
-    {name: 'voronoiNoise', texture: null},
+    {name: 'wave2', texture: null, ext: 'jpeg'},
+    {name: 'wave20', texture: null, ext: 'png'},
+    {name: 'wave9', texture: null, ext: 'png'},
+    {name: 'electronic-ball2', texture: null, ext: 'png'},
+    {name: 'noise', texture: null, ext: 'jpg'},
+    {name: 'electricityTexture1', texture: null, ext: 'png'},
+    {name: 'electricityTexture2', texture: null, ext: 'png'},
+    {name: 'trail', texture: null, ext: 'png'},
+    {name: 'mask', texture: null, ext: 'png'},
+    {name: 'voronoiNoise', texture: null, ext: 'jpg'},
   ];
   const texturesPromise = (async () => {
     for(const particleTexture of particleTextures){
-        const texture = textureLoader.load(`${baseUrl}textures/${particleTexture.name}.png`);
+        const texture = textureLoader.load(`${baseUrl}textures/${particleTexture.name}.${particleTexture.ext}`);
         if (particleTexture.name === 'trail' || particleTexture.name === 'voronoiNoise') {
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         }
