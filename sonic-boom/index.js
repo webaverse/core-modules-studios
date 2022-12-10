@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals, useKtx2Util} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useCameraManager, useLoaders, useInternals} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 export default () => {
@@ -11,9 +11,8 @@ export default () => {
   const {renderer, camera} = useInternals();
   let narutoRunTime = 0; 
   let lastStopSw = 0;
+  const textureLoader = new THREE.TextureLoader()
 
-  const {loadKtx2TextureUrl} = useKtx2Util();
-  
   const particleTextures = [
     {name: 'wave2', texture: null},
     {name: 'wave20', texture: null},
@@ -28,7 +27,7 @@ export default () => {
   ];
   const texturesPromise = (async () => {
     for(const particleTexture of particleTextures){
-        const texture = await loadKtx2TextureUrl(`${baseUrl}textures/${particleTexture.name}.ktx2`);
+        const texture = textureLoader.load(`${baseUrl}textures/${particleTexture.name}.png`);
         if (particleTexture.name === 'trail' || particleTexture.name === 'voronoiNoise') {
             texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         }

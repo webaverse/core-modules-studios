@@ -1,26 +1,14 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternals, useKtx2Util} = metaversefile;
+const {useApp, useFrame, useInternals} = metaversefile;
 import {WebaverseShaderMaterial} from '../../materials.js';
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
-const {loadKtx2TextureUrl} = useKtx2Util();
-
-let sparkle;
-let circle;
-let splashTexture12;
-const loadPromise = Promise.all([
-  (async () => {
-    sparkle = await loadKtx2TextureUrl(`${baseUrl}/textures/sparkle.ktx2`);
-  })(),
-  (async () => {
-    circle = await loadKtx2TextureUrl(`${baseUrl}/textures/Circle18.ktx2`);
-  })(),
-  (async () => {
-    splashTexture12 = await loadKtx2TextureUrl(`${baseUrl}/textures/splash12.ktx2`);
-  })(),
-]);
+const textureLoader = new THREE.TextureLoader();
+const sparkle = textureLoader.load(`${baseUrl}/textures/sparkle.png`);
+const circle = textureLoader.load(`${baseUrl}/textures/Circle18.png`);
+const splashTexture12 = textureLoader.load(`${baseUrl}/textures/splash12.png`);
 let playEffect = false;
 export default () => {
   let player = null;
@@ -80,9 +68,9 @@ export default () => {
               cameraBillboardQuaternion: {
                   value: new THREE.Quaternion(),
               },
-              flashTexture:{value: null},
-              sparkleTexture: { type: 't', value: null },
-              circleTexture: { type: 't', value: null },
+              flashTexture:{value: splashTexture12},
+              sparkleTexture: { type: 't', value: sparkle },
+              circleTexture: { type: 't', value: circle },
               avatarPos:{
                   value: new THREE.Vector3(0,0,0)
               },
@@ -166,12 +154,6 @@ export default () => {
           lights: false,
         
       });
-      (async () => {
-        await loadPromise;
-        flashMaterial.uniforms.flashTexture.value = splashTexture12;
-        flashMaterial.uniforms.sparkleTexture.value = sparkle;
-        flashMaterial.uniforms.circleTexture.value = circle;
-      })();
       //##################################################### pixel material #####################################################
       const pixelMaterial = new WebaverseShaderMaterial({
         vertexShader: `\
