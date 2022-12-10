@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useThreeUtils, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules, useKtx2Util} = metaversefile;
+const {useApp, useFrame, useThreeUtils, useMaterials, useSound, useLocalPlayer, useDropManager, useDefaultModules} = metaversefile;
 
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const {BufferGeometryUtils} = useThreeUtils();
-const {loadKtx2TextureUrl} = useKtx2Util();
 
 // const cardWidth = 0.063;
 // const cardHeight = cardWidth / 2.5 * 3.5;
@@ -35,13 +34,23 @@ const zeroVector = new THREE.Vector3(0, 0, 0);
 const gravity = new THREE.Vector3(0, -9.8, 0);
 
 const makeSeamlessNoiseTexture = async () => {
-  const texture = await loadKtx2TextureUrl(`${baseUrl}perlin-noise.ktx2`)
-
+  const img = new Image();
+  const texture = new THREE.Texture(img);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
-  texture.needsUpdate = true;
+
+  img.crossOrigin = 'Anonymous';
+  img.onload = () => {
+    // console.log('load image', img);
+    // document.body.appendChild(img);
+    texture.needsUpdate = true;
+  };
+  img.onerror = err => {
+    console.warn(err);
+  };
+  img.src = `${baseUrl}perlin-noise.jpg`;
 
   return texture;
 };

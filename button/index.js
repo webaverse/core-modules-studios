@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useKtx2Util} = metaversefile;
+const {useApp, useFrame} = metaversefile;
 
 const keySize = 0.3;
 const keyRadius = 0.045;
@@ -30,13 +30,16 @@ const eKeyMaterial = (() => {
     side: THREE.DoubleSide,
   });
   (async () => {
-    const {loadKtx2TextureUrl} = useKtx2Util();
-    const src = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}e-key.ktx2`;
-    const texture = await loadKtx2TextureUrl(src);
+    const texture = new THREE.Texture();
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.encoding = THREE.sRGBEncoding;
     texture.anisotropy = 16;
+    const src = `${import.meta.url.replace(/(\/)[^\/]*$/, '$1')}e-key.png`;
+    const res = await fetch(src);
+    const blob = await res.blob();
+    const imageBitmap = await createImageBitmap(blob);
+    texture.image = imageBitmap;
     texture.needsUpdate = true;
 
     material.map = texture;
