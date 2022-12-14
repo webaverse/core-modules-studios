@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternals} = metaversefile;
-import {WebaverseShaderMaterial} from '../../materials.js';
+const {useApp, useFrame, useInternals, useMaterials} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const textureLoader = new THREE.TextureLoader();
@@ -14,6 +13,7 @@ export default () => {
   let player = null;
   const app = useApp();
   const {camera} = useInternals();
+  const {WebaverseShaderMaterial} = useMaterials();
   app.playEffect = (p) =>{
     playEffect = true;
     player = p;
