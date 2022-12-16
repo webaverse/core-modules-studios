@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useLocalPlayer, useCleanup} = metaversefile;
+const {useApp, useFrame, useLocalPlayer} = metaversefile;
 
 const localVector = new THREE.Vector3();
 
@@ -55,32 +55,29 @@ function createBoxWithRoundedEdges(width, height, radius, innerFactor) {
 }
 
 const makeKeyMaterial = textureFile => {
-  const texture = new THREE.Texture();
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.encoding = THREE.sRGBEncoding;
-  texture.anisotropy = 16;
-  (async () => {
-    const img = await new Promise((accept, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        accept(img);
-      };
-      img.onerror = reject;
-      img.src = `${import.meta.url.replace(/(\/)[^\/]*$/, textureFile)}`;
-    });
-    texture.image = img;
-    texture.needsUpdate = true;
-  })();
   const material = new THREE.MeshBasicMaterial({
-    map: texture,
     color: 0xffffff,
     depthTest: false,
     transparent: true,
     alphaTest: 0.5,
     side: THREE.DoubleSide,
   });
+  (async () => {
+    const texture = new THREE.Texture();
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.encoding = THREE.sRGBEncoding;
+    texture.anisotropy = 16;
+    texture.flipY = false;
+    const src = `${import.meta.url.replace(/(\/)[^\/]*$/, textureFile)}`;
+    const res = await fetch(src);
+    const blob = await res.blob();
+    const imageBitmap = await createImageBitmap(blob, {imageOrientation: 'flipY'});
+    texture.image = imageBitmap;
+    texture.needsUpdate = true;
+
+    material.map = texture;
+  })();
   return material;
 };
 
@@ -243,76 +240,44 @@ export default () => {
 
   app.add(pArrows);
 
-  // ########################################################## for testing ####################################################################
-  const keydown = e => {
-    if (e.key === 'e') {
-      const f = 0.5;
-      eKeyMesh.scale.setScalar(1 - f * 0.3);
-      eKeyCircleMesh.scale.setScalar(1 - f * 0.2);
-      eKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
-      eKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'r') {
-      const f = 0.5;
-      rKeyMesh.scale.setScalar(1 - f * 0.3);
-      rKeyCircleMesh.scale.setScalar(1 - f * 0.2);
-      rKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
-      rKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'f') {
-      const f = 0.5;
-      fKeyMesh.scale.setScalar(1 - f * 0.3);
-      fKeyCircleMesh.scale.setScalar(1 - f * 0.2);
-      fKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
-      fKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'c') {
-      const f = 0.5;
-      cKeyMesh.scale.setScalar(1 - f * 0.3);
-      cKeyCircleMesh.scale.setScalar(1 - f * 0.2);
-      cKeyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
-      cKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-  };
+  // Blue button border on keydown functionality, parked for now
+  // const keyDown = (keyMesh, keyCircleMesh) => {
+  //   const f = 0.5;
+  //     keyMesh.scale.setScalar(1 - f * 0.3);
+  //     keyCircleMesh.scale.setScalar(1 - f * 0.2);
+  //     keyCircleMesh.material.uniforms.uColor.value.set(0x42a5f5);
+  //     keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+  //     app.updateMatrixWorld();
+  // };
 
-  const keyup = e => {
-    if (e.key === 'e') {
-      eKeyMesh.scale.setScalar(1);
-      eKeyCircleMesh.scale.setScalar(1);
-      eKeyCircleMesh.material.uniforms.uColor.value.set(0x222222);
-      eKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'r') {
-      rKeyMesh.scale.setScalar(1);
-      rKeyCircleMesh.scale.setScalar(1);
-      rKeyCircleMesh.material.uniforms.uColor.value.set(0x222222);
-      rKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'f') {
-      fKeyMesh.scale.setScalar(1);
-      fKeyCircleMesh.scale.setScalar(1);
-      fKeyCircleMesh.material.uniforms.uColor.value.set(0x222222);
-      fKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-    if (e.key === 'c') {
-      cKeyMesh.scale.setScalar(1);
-      cKeyCircleMesh.scale.setScalar(1);
-      cKeyCircleMesh.material.uniforms.uColor.value.set(0x222222);
-      cKeyCircleMesh.material.uniforms.uTime.needsUpdate = true;
-      app.updateMatrixWorld();
-    }
-  };
+  // const keyUp = (keyMesh, keyCircleMesh) => {
+  //     keyMesh.scale.setScalar(1);
+  //     keyCircleMesh.scale.setScalar(1);
+  //     keyCircleMesh.material.uniforms.uColor.value.set(0x222222);
+  //     keyCircleMesh.material.uniforms.uTime.needsUpdate = true;
+  //     app.updateMatrixWorld();
+  // };
 
-  window.addEventListener('keydown', keydown);
-  window.addEventListener('keyup', keyup);
-  // ##########################################################################################################################################
+  // const eKeyDown = keyDown(eKeyMesh, eKeyCircleMesh);
+  // const rKeyDown = keyDown(rKeyMesh, rKeyCircleMesh);
+  // const fKeyDown = keyDown(fKeyMesh, fKeyCircleMesh);
+  // const cKeyDown = keyDown(cKeyMesh, cKeyCircleMesh);
+
+  // const eKeyUp = keyUp(eKeyMesh, eKeyCircleMesh);
+  // const rKeyUp = keyUp(rKeyMesh, rKeyCircleMesh);
+  // const fKeyUp = keyUp(fKeyMesh, fKeyCircleMesh);
+  // const cKeyUp = keyUp(cKeyMesh, cKeyCircleMesh);
+
+  // const handleKeyDown = e => {
+  //   const {key} = e.data;
+  //   switch (key) {
+  //     case 'e': {
+  //       eKeyDown();
+  //       break;
+  //     }
+  //   }
+  // };
+  // app.addEventListener('keydown', handleKeyDown);
 
   useFrame(({timestamp, timeDiff}) => {
     if (app.targetApp && app.bb) {
@@ -341,11 +306,6 @@ export default () => {
     } else if (!app.targetApp && app.visible) {
       app.visible = false;
     }
-  });
-
-  useCleanup(() => {
-    window.removeEventListener('keydown', keydown);
-    window.removeEventListener('keyup', keyup);
   });
 
   return app;
