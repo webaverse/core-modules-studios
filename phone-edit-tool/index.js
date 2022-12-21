@@ -172,7 +172,7 @@ export default e => {
     }
     await phoneApp.addModule(phoneModel);
 
-    let u3 = baseUrl + 'assets/cone3.glb';
+    let u3 = baseUrl + 'assets/cone.glb';
     if (/^https?:/.test(u3)) {
       u3 = '/@proxy/' + u3;
     }
