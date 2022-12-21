@@ -47,6 +47,7 @@ const targetTypeColors = [
 const triangleHalfSize = 0.08;
 const triangleSize = triangleHalfSize * 2;
 const innerRadius = 0.3;
+const targetScale = 0.2;
 
 function createTargetReticleGeometry() {
   const a = new THREE.Vector2(-triangleHalfSize, triangleHalfSize);
@@ -135,7 +136,9 @@ function createTargetReticleGeometry() {
       new THREE.Vector2(1, 0)
     ),
   ];
-  return BufferGeometryUtils.mergeBufferGeometries(geometries);
+  const geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
+  geometry.scale(targetScale, targetScale, targetScale);
+  return geometry;
 };
 function createTargetReticleGeometries(count) {
   const geometry = createTargetReticleGeometry();
@@ -156,16 +159,6 @@ const _makeTargetReticleMesh = () => {
   geometry.setDrawRange(0, 0);
   const material = new WebaverseShaderMaterial({
     uniforms: {
-      /* uBoundingBox: {
-        type: 'vec4',
-        value: new THREE.Vector4(
-          boundingBox.min.x,
-          boundingBox.min.y,
-          boundingBox.max.x - boundingBox.min.x,
-          boundingBox.max.y - boundingBox.min.y
-        ),
-        needsUpdate: true,
-      }, */
       uColor1: {
         value: new THREE.Color(0x000000),
         needsUpdate: true,
@@ -174,13 +167,15 @@ const _makeTargetReticleMesh = () => {
         value: new THREE.Color(0xFFFFFF),
         needsUpdate: true,
       },
+      uAspect: {
+        value: camera.aspect,
+        needsUpdate: true,
+      },
       uZoom: {
-        // type: 'f',
         value: 0,
         needsUpdate: true,
       },
       uTime: {
-        // type: 'f',
         value: 0,
         needsUpdate: true,
       },
@@ -191,20 +186,16 @@ const _makeTargetReticleMesh = () => {
 
       #define PI 3.1415926535897932384626433832795
 
+      uniform float uAspect;
       attribute vec3 offset;
       attribute vec4 quaternion;
       attribute int type;
       attribute vec2 normal2;
       attribute float zoom;
-      // uniform vec4 uBoundingBox;
-      // uniform float uZoom;
       uniform float uTime;
-      // varying vec3 vColor;
-      // varying float vF;
       varying vec2 vUv;
-      // varying vec2 vNormal2;
-      // varying vec3 vNormal;
       varying vec3 vBarycentric;
+      varying vec3 vPosition;
       flat varying int vType;
 
       const float zoomDistance = 5.;
@@ -227,19 +218,16 @@ const _makeTargetReticleMesh = () => {
           float angle = uTime * PI * 2.;
           p = vec3(rotate2D(p.xy, angle) + rotate2D(normal2 * uZoom * zoomDistance, angle), p.z);
         }
-        p = rotateVec3Quat(p, quaternion);
+        p.y *= uAspect;
+        // p = rotateVec3Quat(p, quaternion);
         p += offset;
 
-        vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
-        gl_Position = projectionMatrix * mvPosition;
+        vPosition = offset;
+
+        gl_Position = vec4(p.xy, 0., 1.);
         
-        const float radius = 0.175;
-        // vColor = abs(position) / radius;
-        // vColor = normalize(vColor);
-        // vF = f;
-        // vNormal = normal;
+        // const float radius = 0.175;
         vUv = uv;
-        // vNormal2 = normal2;
 
         float vid = float(gl_VertexID);
         if (mod(vid, 3.) < 0.5) {
@@ -262,9 +250,8 @@ const _makeTargetReticleMesh = () => {
       uniform float uTime;
       varying vec2 vUv;
       flat varying int vType;
-      // varying vec2 vNormal2;
-      // varying vec3 vNormal;
       varying vec3 vBarycentric;
+      varying vec3 vPosition;
 
       // compute the distance to edge of the triangle from its barycentric coordinates
       float distanceToEdge(vec3 barycentric) {
@@ -316,6 +303,11 @@ const _makeTargetReticleMesh = () => {
     }
 
       void main() {
+        // if outside of view
+        if (vPosition.z < 0. || vPosition.z > 1.) {
+          discard;
+        }
+        
         vec3 uColor1;
         vec3 uColor2;
         if (vType == 0) {
@@ -329,38 +321,14 @@ const _makeTargetReticleMesh = () => {
           uColor2 = vec3(${targetTypeColors[2].colors[1].toArray().join(', ')});
         }
 
-        /* float t = pow(uTime, 0.5)/2. + 0.5;
-        bool draw;
-        if (vF > 0.5) {
-          draw = vF < t;
-        } else {
-          draw = (1.-vF) < t;
-        }
-        if (draw) {
-          gl_FragColor = vec4(hueShift(vec3(1., 0., 0.), vF * PI * 3.), 1.);
-        } else {
-          discard;
-        } */
-
         vec3 c = mix(uColor1, uColor2, vUv.y);
-        // c *= distanceToEdge(vBarycentric);
         c *= (0.5 + 0.5 * (1. - vUv.y));
-        // c *= 0.25 + edgeFactor(vBarycentric, 1.) * 0.75;
         if (edgeFactor(vBarycentric, 1.) < 0.2) {
           c = vec3(0.);
         }
-        /* if (vBarycentric.x > 0.9 || vBarycentric.y > 0.9 || vBarycentric.z > 0.9) {
-          c = vec3(0.);
-        } */
-        // float y = vUv.x * vUv.y;
-        /* if (vUv.x < (y + 0.1) || 1. - vUv.x > (y + 0.1) || vUv.y < 0.02 || vUv.y > 0.98) {
-          c = vec3(0.);
-        } */
 
-        c = hueShift(c, sin(uTime * 10. * PI * 2.) * 0.1 * PI * 2.);
+        c = hueShift(c, sin(uTime * 5. * PI * 2.) * 0.1 * PI * 2.);
 
-        // gl_FragColor = vec4(vUv.x, vUv.y, 0., 1.);
-        
         gl_FragColor = vec4(c, 1.);
 
         #include <tonemapping_fragment>
@@ -368,6 +336,9 @@ const _makeTargetReticleMesh = () => {
       }
     `,
     side: THREE.DoubleSide,
+    // depthTest: false,
+    // depthWrite: true,
+    // transparent: true,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
@@ -377,6 +348,9 @@ const _makeTargetReticleMesh = () => {
 
     material.uniforms.uTime.value = f;
     material.uniforms.uTime.needsUpdate = true;
+
+    material.uniforms.uAspect.value = camera.aspect;
+    material.uniforms.uAspect.needsUpdate = true;
   };
 
   mesh.setReticles = reticles => {
@@ -390,8 +364,13 @@ const _makeTargetReticleMesh = () => {
       const typeIndex = targetTypeColors.findIndex(t => t.name === type);
       const zoom = reticle.zoom;
 
+      // project the position into the camera
+      const projectedPosition = localVector.copy(position)
+        .applyMatrix4(camera.matrixWorldInverse)
+        .applyMatrix4(camera.projectionMatrix);
+      
       for (let j = 0; j < geometry.drawStride; j++) {
-        position.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
+        projectedPosition.toArray(geometry.attributes.offset.array, (i * geometry.drawStride * 3) + (j * 3));
         quaternion.toArray(geometry.attributes.quaternion.array, (i * geometry.drawStride * 3) + (j * 4));
         geometry.attributes.type.array[i * geometry.drawStride + j] = typeIndex;
         geometry.attributes.zoom.array[i * geometry.drawStride + j] = zoom;
