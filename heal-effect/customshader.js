@@ -1,8 +1,8 @@
-import * as THREE from "three";
-
 export const customshader = (material, uniforms) => {
-  material.uniforms = uniforms;
-  material.onBeforeCompile = shader => {
+  const healEffectMaterial = material.clone();
+
+  healEffectMaterial.uniforms = uniforms;
+  healEffectMaterial.onBeforeCompile = shader => {
     shader.uniforms.uTime = uniforms.uTime;
     shader.uniforms.eye = uniforms.eye;
     shader.uniforms.playerQuaternion = uniforms.playerQuaternion;
@@ -76,4 +76,5 @@ export const customshader = (material, uniforms) => {
     );
     // console.log(shader.fragmentShader);
   };
+  return healEffectMaterial;
 }

@@ -289,7 +289,8 @@ export default () => {
             const model = getModelType(avatarRenderer);
             model && model.traverse(o => {
               if (o.isMesh) {
-                customshader(o.material, bodyMeshUniforms);
+                const healEffectMaterial = customshader(o.material, bodyMeshUniforms);
+                o.material = healEffectMaterial;
               }
             });
           };
@@ -410,9 +411,9 @@ export default () => {
           swAttribute.needsUpdate = true;
           scalesAttribute.needsUpdate = true;
           flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-          flashMesh.material.uniforms.avatarPos.x=player.position.x;
-          flashMesh.material.uniforms.avatarPos.y=player.position.y;
-          flashMesh.material.uniforms.avatarPos.z=player.position.z;
+          flashMesh.material.uniforms.avatarPos.x = player.position.x;
+          flashMesh.material.uniforms.avatarPos.y = player.position.y;
+          flashMesh.material.uniforms.avatarPos.z = player.position.z;
 
           //#################################### handle pixel #######################################
           for(let i = 0; i < pixelParticleCount; i++){
@@ -442,7 +443,6 @@ export default () => {
           }
           
           if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
-            console.log('end')
             bodyMeshUniforms.isHealing.value = false;
             startEffectTime = -1;
           }
