@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 
 import metaversefile from 'metaversefile';
+import { customshader } from './customshader.js';
+
 const {useApp, useFrame, useInternals, useMaterials} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 
 const textureLoader = new THREE.TextureLoader();
-const sparkle = textureLoader.load(`${baseUrl}/textures/sparkle.png`);
-const circle = textureLoader.load(`${baseUrl}/textures/Circle18.png`);
-const splashTexture12 = textureLoader.load(`${baseUrl}/textures/splash12.png`);
+const sparkle = textureLoader.load(`${baseUrl}textures/sparkle.png`);
+const circle = textureLoader.load(`${baseUrl}textures/Circle18.png`);
+const splashTexture12 = textureLoader.load(`${baseUrl}textures/splash12.png`);
 let playEffect = false;
 export default () => {
   let player = null;
@@ -23,43 +25,43 @@ export default () => {
       const pixelParticleCount = 15;
       //##################################################### get geometry #####################################################
       const _getFlashGeometry = geometry => {
-          const geometry2 = new THREE.BufferGeometry();
-          ['position', 'normal', 'uv'].forEach(k => {
-            geometry2.setAttribute(k, geometry.attributes[k]);
-          });
-          geometry2.setIndex(geometry.index);
-          
-          const positions = new Float32Array(flashParticleCount * 3);
-          const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
-          geometry2.setAttribute('positions', positionsAttribute);
-          
-          const swAttribute = new THREE.InstancedBufferAttribute(new Float32Array(flashParticleCount), 1);
-          swAttribute.setUsage(THREE.DynamicDrawUsage);
-          geometry2.setAttribute('sw', swAttribute);
+        const geometry2 = new THREE.BufferGeometry();
+        ['position', 'normal', 'uv'].forEach(k => {
+          geometry2.setAttribute(k, geometry.attributes[k]);
+        });
+        geometry2.setIndex(geometry.index);
+        
+        const positions = new Float32Array(flashParticleCount * 3);
+        const positionsAttribute = new THREE.InstancedBufferAttribute(positions, 3);
+        geometry2.setAttribute('positions', positionsAttribute);
+        
+        const swAttribute = new THREE.InstancedBufferAttribute(new Float32Array(flashParticleCount), 1);
+        swAttribute.setUsage(THREE.DynamicDrawUsage);
+        geometry2.setAttribute('sw', swAttribute);
 
-          const scales = new Float32Array(flashParticleCount);
-          const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
-          geometry2.setAttribute('scales', scaleAttribute);
+        const scales = new Float32Array(flashParticleCount);
+        const scaleAttribute = new THREE.InstancedBufferAttribute(scales, 1);
+        geometry2.setAttribute('scales', scaleAttribute);
 
-          const id = new Float32Array(flashParticleCount);
-          const idAttribute = new THREE.InstancedBufferAttribute(id, 1);
-          geometry2.setAttribute('id', idAttribute);
-      
-          return geometry2;
+        const id = new Float32Array(flashParticleCount);
+        const idAttribute = new THREE.InstancedBufferAttribute(id, 1);
+        geometry2.setAttribute('id', idAttribute);
+    
+        return geometry2;
       };
       const pixelGeometry = new THREE.BufferGeometry()
       let group = new THREE.Group();
       {
-          const positions = new Float32Array(pixelParticleCount * 3);
-          for(let i = 0; i < pixelParticleCount * 3; i++)
-            positions[i] = 0;
-          pixelGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const positions = new Float32Array(pixelParticleCount * 3);
+        for(let i = 0; i < pixelParticleCount * 3; i++)
+          positions[i] = 0;
+        pixelGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-          const opacity = new Float32Array(pixelParticleCount * 1);
-          pixelGeometry.setAttribute('opacity', new THREE.BufferAttribute(opacity, 1));
+        const opacity = new Float32Array(pixelParticleCount * 1);
+        pixelGeometry.setAttribute('opacity', new THREE.BufferAttribute(opacity, 1));
 
-          const scales = new Float32Array(pixelParticleCount * 1);
-          pixelGeometry.setAttribute('scales', new THREE.BufferAttribute(scales, 1));
+        const scales = new Float32Array(pixelParticleCount * 1);
+        pixelGeometry.setAttribute('scales', new THREE.BufferAttribute(scales, 1));
 
       }
       //##################################################### flash material #####################################################
@@ -214,8 +216,8 @@ export default () => {
         
       });
       //######################################################## initial instanced mesh #################################################################
-      let flashMesh=null;
-      const addInstancedMesh=()=>{
+      let flashMesh = null;
+      const addInstancedMesh = () => {
           const geometry2 = new THREE.PlaneGeometry( 0.5, 0.5 );
           const geometry =_getFlashGeometry(geometry2)
           flashMesh = new THREE.InstancedMesh(
@@ -234,200 +236,219 @@ export default () => {
       const pixel = new THREE.Points(pixelGeometry, pixelMaterial);
       group.add(pixel);
 
-      let storeMaterial = false;
       let particleAlreadyInScene= false;
       let circlePlay = false;
-      let materialStartTime = -1;
-      let healMaterial = [];
+      let startEffectTime = -1;
       let currentModel = null;
+      let currentQuality = null;
       let dir = new THREE.Vector3();
+     
+      const getModelType = (avatarRenderer) => {
+        switch (avatarRenderer.quality) {
+          case 1: {
+            return avatarRenderer.spriteAvatarMesh;
+          }
+          case 2: {
+            return avatarRenderer.crunchedModel;
+          }
+          case 3: {
+            return avatarRenderer.optimizedModel;
+          }
+          case 4: {
+            return avatarRenderer.mesh;
+          }
+          default: {
+            return null;
+          }
+        }
+
+      }
+
+      const bodyMeshUniforms = {
+        uTime: {
+          value: 0
+        },
+        rimStrength: {
+          value: 0
+        },
+        eye: {
+          value: new THREE.Vector3()
+        },
+        playerQuaternion: {
+          value: new THREE.Quaternion()
+        },
+        isHealing: {
+          value: false
+        }
+      };
       useFrame(({timestamp}) => {
-        if(player!==null){
-            //#################### store avatar material ############################
-            const _initHealMaterial = () => {
-              healMaterial = [];
-              player.avatar.object.scene.traverse(o => {
-                // console.log(o.name, o.isMesh);
-                if (o.isMesh) {
-                  if(o.material.constructor.name=='Array'){
-                    if (o.material[0].constructor.name=='MToonMaterial') {
-                      healMaterial.push(o.material[0].uniforms.rimColor.value);
-                    }
-                    else{
-                      if(o.material[0].emissive!==null && o.material[0].emissive!==undefined){
-                        healMaterial.push(o.material[0].emissive);
-                      }  
-                    }
-                  }
-                }
-              });
-            };
+        if(player !== null){
+          //#################### store avatar material ############################
+          const avatarRenderer = player.avatar.avatarRenderer;
+          const _initHealMaterial = () => {
+            const model = getModelType(avatarRenderer);
+            model && model.traverse(o => {
+              if (o.isMesh) {
+                customshader(o.material, bodyMeshUniforms);
+              }
+            });
+          };
 
-            if(currentModel !== player.avatar.model.uuid){
+          if(
+            currentModel !== player.avatar.model.uuid 
+            || currentQuality !== avatarRenderer.quality
+          ){
+            if (getModelType(avatarRenderer)) {
               _initHealMaterial();
-              currentModel = player.avatar.model.uuid
+              currentModel = player.avatar.model.uuid;
+              currentQuality = avatarRenderer.quality;
             }
-            //######################### flash attribute ##############################
-            const swAttribute = flashMesh.geometry.getAttribute('sw');
-            const positionsAttribute = flashMesh.geometry.getAttribute('positions');
-            const scalesAttribute = flashMesh.geometry.getAttribute('scales');
-            const idAttribute = flashMesh.geometry.getAttribute('id');
+          }
+          //######################### flash attribute ##############################
+          const swAttribute = flashMesh.geometry.getAttribute('sw');
+          const positionsAttribute = flashMesh.geometry.getAttribute('positions');
+          const scalesAttribute = flashMesh.geometry.getAttribute('scales');
+          const idAttribute = flashMesh.geometry.getAttribute('id');
 
-            //######################### pixel attribute ##############################
-            const pixelOpacityAttribute = pixel.geometry.getAttribute('opacity');
-            const pixelPositionAttribute = pixel.geometry.getAttribute('position');
-            const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
+          //######################### pixel attribute ##############################
+          const pixelOpacityAttribute = pixel.geometry.getAttribute('opacity');
+          const pixelPositionAttribute = pixel.geometry.getAttribute('position');
+          const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
 
-            if(playEffect){
-                if(!particleAlreadyInScene){
-                  app.add(flashMesh);
-                  app.add(group);
-                  particleAlreadyInScene=true;
-                }
-                for (let i = 0; i < flashParticleCount; i++) {
-                  dir.x = camera.position.x-player.position.x;
-                  dir.y = camera.position.y-player.position.y;
-                  dir.z = camera.position.z-player.position.z;
-                  dir.normalize();
-                  if(player.avatar)
-                    positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
-                  scalesAttribute.setX(i, 0.1);
-                  swAttribute.setX(i, 1);
-                }
-                for(let i = 0; i < pixelParticleCount; i++){
-                    pixelScaleAttribute.setX(i,0.5+0.5*Math.random());
-                    pixelOpacityAttribute.setX(i,1);
-                    pixelPositionAttribute.setXYZ(i,(Math.random()-0.5)*0.5,-0.5+(Math.random())*-1.5,(Math.random()-0.5)*0.5);
-                }
-                for(let i=0;i<healMaterial.length;i++){
-                  // healMaterial[i].emissiveMap= null;
-                  healMaterial[i].r = 0.;
-                  healMaterial[i].g = 70.;
-                  healMaterial[i].b = 0.;
-                }
-              playEffect = false;
+          if(playEffect){
+            if(!particleAlreadyInScene){
+              app.add(flashMesh);
+              app.add(group);
+              particleAlreadyInScene = true;
             }
-            //#################################### handle flash #######################################
-            for (let i = 0; i < flashParticleCount; i++) {
-                dir.x = camera.position.x-player.position.x;
-                dir.y = camera.position.y-player.position.y;
-                dir.z = camera.position.z-player.position.z;
-                dir.normalize();
-                if(player.avatar)
-                  positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
-                switch (idAttribute.getX(i)) {
-                    case 0: {
-                        if(circlePlay){
-                            if(scalesAttribute.getX(i)<1.5){
-                                scalesAttribute.setX(i, scalesAttribute.getX(i)+0.2);
-                            }
-                            else{
-                                scalesAttribute.setX(i, 0);
-                                circlePlay = false;
-                                // app.unwear();
-                                for(let i=0;i<healMaterial.length;i++){
-                                  // healMaterial[i].emissiveMap= null;
-                                  healMaterial[i].r = 0.;
-                                  healMaterial[i].g = 1.;
-                                  healMaterial[i].b = 0.;
-                                }
-                                materialStartTime = timestamp;
-                              
-                            }
-                        }
-                        
-                        break;
-                    }
-                    case 1: {
-                        if(scalesAttribute.getX(i)<5){
-                            if(swAttribute.getX(i)>=1)
-                                scalesAttribute.setX(i, scalesAttribute.getX(i)+0.9);
-                            else{
-                                if(scalesAttribute.getX(i)>0)
-                                    scalesAttribute.setX(i, scalesAttribute.getX(i)-0.8);
-                                else{
-                                    scalesAttribute.setX(i, 0);
-                                }
-                            }
-                        }
-                        else{
-                            swAttribute.setX(i,0.95);
-                            scalesAttribute.setX(i, 4.9);
-                            if(!circlePlay)
-                                circlePlay = true;
-                        }
-                        break;
-                    }
-                    case 2: {
-                        if(scalesAttribute.getX(i)<4){
-                            if(swAttribute.getX(i)>=1)
-                                scalesAttribute.setX(i, scalesAttribute.getX(i)+0.9);
-                            else{
-                                if(scalesAttribute.getX(i)>0)
-                                    scalesAttribute.setX(i, scalesAttribute.getX(i)-0.8);
-                                else
-                                    scalesAttribute.setX(i, 0);
-                            }
-                        }
-                        else{
-                            swAttribute.setX(i,0.95);
-                            scalesAttribute.setX(i, 3.9);
-                        }
-                        break;
-                    }
-                }
+            startEffectTime = startEffectTime === -1 ? timestamp : startEffectTime;
+            for (let i = 0; i < flashParticleCount; i ++) {
+              dir.x = camera.position.x-player.position.x;
+              dir.y = camera.position.y-player.position.y;
+              dir.z = camera.position.z-player.position.z;
+              dir.normalize();
+              if(player.avatar)
+                positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
+              scalesAttribute.setX(i, 0.1);
+              swAttribute.setX(i, 1);
             }
-
-            idAttribute.needsUpdate = true;
-            positionsAttribute.needsUpdate = true;
-            swAttribute.needsUpdate = true;
-            scalesAttribute.needsUpdate = true;
-            flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-            flashMesh.material.uniforms.avatarPos.x=player.position.x;
-            flashMesh.material.uniforms.avatarPos.y=player.position.y;
-            flashMesh.material.uniforms.avatarPos.z=player.position.z;
-
-            //#################################### handle pixel #######################################
-            for(let i = 0; i < pixelParticleCount; i++){
-                if(pixelOpacityAttribute.getX(i)>0){
-                    pixelScaleAttribute.setX(i,pixelScaleAttribute.getX(i)-0.01);
-                    pixelOpacityAttribute.setX(i,pixelOpacityAttribute.getX(i)-(0.01+Math.random()*0.03));
-                    pixelPositionAttribute.setY(i,pixelPositionAttribute.getY(i)+0.02);
-                }
-                    
-                else
-                    pixelOpacityAttribute.setX(i,0);
+            for(let i = 0; i < pixelParticleCount; i ++){
+                pixelScaleAttribute.setX(i, 0.5 + 0.5 * Math.random());
+                pixelOpacityAttribute.setX(i, 1);
+                pixelPositionAttribute.setXYZ(i,(Math.random() - 0.5) * 0.5, -0.5 + (Math.random()) * -1.5, (Math.random() - 0.5) * 0.5);
             }
-            pixelOpacityAttribute.needsUpdate = true;
-            pixelPositionAttribute.needsUpdate = true;
-            pixelScaleAttribute.needsUpdate = true;
-            group.position.copy(player.position);
-
-            if(materialStartTime>0){
-              for(let i=0;i<healMaterial.length;i++){
-                  if(healMaterial[i].g>0){
-                    // healMaterial[i].r += 0.02;
-                    healMaterial[i].g -= 0.02;
-                    // healMaterial[i].b += 0.02;
+            playEffect = false;
+          }
+          //#################################### handle flash #######################################
+          for (let i = 0; i < flashParticleCount; i ++) {
+            dir.x = camera.position.x-player.position.x;
+            dir.y = camera.position.y-player.position.y;
+            dir.z = camera.position.z-player.position.z;
+            dir.normalize();
+            if(player.avatar)
+              positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
+            switch (idAttribute.getX(i)) {
+              case 0: {
+                if(circlePlay){
+                  if(scalesAttribute.getX(i) < 1.5){
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.2);
                   }
                   else{
-                    healMaterial[i].r = 0;
-                    healMaterial[i].g = 0;
-                    healMaterial[i].b = 0;
-                    if(particleAlreadyInScene){
-                      app.remove(group);
-                      app.remove(flashMesh);
-                      particleAlreadyInScene=false;
-                      materialStartTime = 0;
-                    }
-                    
+                    scalesAttribute.setX(i, 0);
+                    circlePlay = false;
                   }
-                      
+                }
+                
+                break;
               }
-              
+              case 1: {
+                  if(scalesAttribute.getX(i) < 5){
+                    if(swAttribute.getX(i) >= 1)
+                      scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
+                    else{
+                      if(scalesAttribute.getX(i) > 0)
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
+                      else{
+                        scalesAttribute.setX(i, 0);
+                      }
+                    }
+                  }
+                  else{
+                    swAttribute.setX(i, 0.95);
+                    scalesAttribute.setX(i, 4.9);
+                    if(!circlePlay)
+                      circlePlay = true;
+                  }
+                  break;
+              }
+              case 2: {
+                if(scalesAttribute.getX(i) < 4){
+                  if(swAttribute.getX(i) >= 1)
+                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
+                  else{
+                    if(scalesAttribute.getX(i) > 0)
+                      scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
+                    else {
+                      scalesAttribute.setX(i, 0);
+                      
+                      // bodyMeshUniforms.isHealing.value = false;
+                      // startEffectTime = -1;
+                    }
+                  }
+                }
+                else{
+                  swAttribute.setX(i, 0.95);
+                  scalesAttribute.setX(i, 3.9);
+                }
+                break;
+              }
             }
+          }
 
-            app.updateMatrixWorld();  
+          idAttribute.needsUpdate = true;
+          positionsAttribute.needsUpdate = true;
+          swAttribute.needsUpdate = true;
+          scalesAttribute.needsUpdate = true;
+          flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+          flashMesh.material.uniforms.avatarPos.x=player.position.x;
+          flashMesh.material.uniforms.avatarPos.y=player.position.y;
+          flashMesh.material.uniforms.avatarPos.z=player.position.z;
+
+          //#################################### handle pixel #######################################
+          for(let i = 0; i < pixelParticleCount; i++){
+            if(pixelOpacityAttribute.getX(i)>0){
+              pixelScaleAttribute.setX(i,pixelScaleAttribute.getX(i)-0.01);
+              pixelOpacityAttribute.setX(i,pixelOpacityAttribute.getX(i)-(0.01+Math.random()*0.03));
+              pixelPositionAttribute.setY(i,pixelPositionAttribute.getY(i)+0.02);
+            }
+                
+            else
+              pixelOpacityAttribute.setX(i,0);
+          }
+          pixelOpacityAttribute.needsUpdate = true;
+          pixelPositionAttribute.needsUpdate = true;
+          pixelScaleAttribute.needsUpdate = true;
+          group.position.copy(player.position);
+
+          if(startEffectTime > 0) {
+            if (startEffectTime >= timestamp) {
+              bodyMeshUniforms.isHealing.value = true;
+              bodyMeshUniforms.rimStrength.value = 0.1;
+            }
+            bodyMeshUniforms.uTime.value = timestamp / 1000;
+            bodyMeshUniforms.eye.value.copy(camera.position);
+            bodyMeshUniforms.playerQuaternion.value.copy(player.quaternion);
+            bodyMeshUniforms.rimStrength.value *= 1.15;
+          }
+          
+          if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
+            console.log('end')
+            bodyMeshUniforms.isHealing.value = false;
+            startEffectTime = -1;
+          }
+          
+
+          app.updateMatrixWorld();  
         }
             
       });
