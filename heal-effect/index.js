@@ -319,6 +319,7 @@ export default () => {
           const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
 
           if (playEffect) {
+            // console.log('start effect')
             startEffectTime = startEffectTime === -1 ? timestamp : startEffectTime;
             for (let i = 0; i < flashParticleCount; i ++) {
               dir.x = camera.position.x-player.position.x;
@@ -342,6 +343,7 @@ export default () => {
             playEffect = false;
           }
           if (startEffectTime > 0) {
+            // console.log('playing effect')
             //#################################### handle flash #######################################
             for (let i = 0; i < flashParticleCount; i ++) {
               dir.x = camera.position.x-player.position.x;
@@ -446,8 +448,11 @@ export default () => {
             }
           }
           else {
-            flashMesh.visible = false;
-            group.visible = false;
+            if (flashMesh.visible || group.visible) {
+              // console.log('end effect')
+              flashMesh.visible = false;
+              group.visible = false;
+            }
           }
           app.updateMatrixWorld();  
         }
