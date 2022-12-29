@@ -338,7 +338,7 @@ export default () => {
 
             flashMesh.visible = true;
             group.visible = true;
-            
+
             playEffect = false;
           }
           if (startEffectTime > 0) {
@@ -449,25 +449,6 @@ export default () => {
             flashMesh.visible = false;
             group.visible = false;
           }
-          
-
-          // if(startEffectTime > 0) {
-          //   if (startEffectTime >= timestamp) {
-          //     bodyMeshUniforms.isHealing.value = true;
-          //     bodyMeshUniforms.rimStrength.value = 0.1;
-          //   }
-          //   bodyMeshUniforms.uTime.value = timestamp / 1000;
-          //   bodyMeshUniforms.eye.value.copy(camera.position);
-          //   bodyMeshUniforms.playerQuaternion.value.copy(player.quaternion);
-          //   bodyMeshUniforms.rimStrength.value *= 1.15;
-          // }
-          
-          // if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
-          //   bodyMeshUniforms.isHealing.value = false;
-          //   startEffectTime = -1;
-          // }
-          
-
           app.updateMatrixWorld();  
         }
             
