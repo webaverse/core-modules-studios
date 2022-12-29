@@ -236,7 +236,9 @@ export default () => {
       const pixel = new THREE.Points(pixelGeometry, pixelMaterial);
       group.add(pixel);
 
-      let particleAlreadyInScene= false;
+      app.add(flashMesh);
+      app.add(group);
+
       let circlePlay = false;
       let startEffectTime = -1;
       let currentModel = null;
@@ -316,12 +318,7 @@ export default () => {
           const pixelPositionAttribute = pixel.geometry.getAttribute('position');
           const pixelScaleAttribute = pixel.geometry.getAttribute('scales');
 
-          if(playEffect){
-            if(!particleAlreadyInScene){
-              app.add(flashMesh);
-              app.add(group);
-              particleAlreadyInScene = true;
-            }
+          if (playEffect) {
             startEffectTime = startEffectTime === -1 ? timestamp : startEffectTime;
             for (let i = 0; i < flashParticleCount; i ++) {
               dir.x = camera.position.x-player.position.x;
@@ -338,100 +335,102 @@ export default () => {
                 pixelOpacityAttribute.setX(i, 1);
                 pixelPositionAttribute.setXYZ(i,(Math.random() - 0.5) * 0.5, -0.5 + (Math.random()) * -1.5, (Math.random() - 0.5) * 0.5);
             }
+
+            flashMesh.visible = true;
+            group.visible = true;
+            
             playEffect = false;
           }
-          //#################################### handle flash #######################################
-          for (let i = 0; i < flashParticleCount; i ++) {
-            dir.x = camera.position.x-player.position.x;
-            dir.y = camera.position.y-player.position.y;
-            dir.z = camera.position.z-player.position.z;
-            dir.normalize();
-            if(player.avatar)
-              positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
-            switch (idAttribute.getX(i)) {
-              case 0: {
-                if(circlePlay){
-                  if(scalesAttribute.getX(i) < 1.5){
-                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.2);
+          if (startEffectTime > 0) {
+            //#################################### handle flash #######################################
+            for (let i = 0; i < flashParticleCount; i ++) {
+              dir.x = camera.position.x-player.position.x;
+              dir.y = camera.position.y-player.position.y;
+              dir.z = camera.position.z-player.position.z;
+              dir.normalize();
+              if(player.avatar)
+                positionsAttribute.setXYZ(i, player.position.x+dir.x, player.position.y+dir.y-player.avatar.height/9, player.position.z+dir.z);
+              switch (idAttribute.getX(i)) {
+                case 0: {
+                  if(circlePlay){
+                    if(scalesAttribute.getX(i) < 1.5){
+                      scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.2);
+                    }
+                    else{
+                      scalesAttribute.setX(i, 0);
+                      circlePlay = false;
+                    }
                   }
-                  else{
-                    scalesAttribute.setX(i, 0);
-                    circlePlay = false;
-                  }
+                  
+                  break;
                 }
-                
-                break;
-              }
-              case 1: {
-                  if(scalesAttribute.getX(i) < 5){
+                case 1: {
+                    if(scalesAttribute.getX(i) < 5){
+                      if(swAttribute.getX(i) >= 1)
+                        scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
+                      else{
+                        if(scalesAttribute.getX(i) > 0)
+                          scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
+                        else{
+                          scalesAttribute.setX(i, 0);
+                        }
+                      }
+                    }
+                    else{
+                      swAttribute.setX(i, 0.95);
+                      scalesAttribute.setX(i, 4.9);
+                      if(!circlePlay)
+                        circlePlay = true;
+                    }
+                    break;
+                }
+                case 2: {
+                  if(scalesAttribute.getX(i) < 4){
                     if(swAttribute.getX(i) >= 1)
                       scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
                     else{
                       if(scalesAttribute.getX(i) > 0)
                         scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
-                      else{
+                      else {
                         scalesAttribute.setX(i, 0);
                       }
                     }
                   }
                   else{
                     swAttribute.setX(i, 0.95);
-                    scalesAttribute.setX(i, 4.9);
-                    if(!circlePlay)
-                      circlePlay = true;
+                    scalesAttribute.setX(i, 3.9);
                   }
                   break;
-              }
-              case 2: {
-                if(scalesAttribute.getX(i) < 4){
-                  if(swAttribute.getX(i) >= 1)
-                    scalesAttribute.setX(i, scalesAttribute.getX(i) + 0.9);
-                  else{
-                    if(scalesAttribute.getX(i) > 0)
-                      scalesAttribute.setX(i, scalesAttribute.getX(i) - 0.8);
-                    else {
-                      scalesAttribute.setX(i, 0);
-                      
-                      // bodyMeshUniforms.isHealing.value = false;
-                      // startEffectTime = -1;
-                    }
-                  }
                 }
-                else{
-                  swAttribute.setX(i, 0.95);
-                  scalesAttribute.setX(i, 3.9);
-                }
-                break;
               }
             }
-          }
 
-          idAttribute.needsUpdate = true;
-          positionsAttribute.needsUpdate = true;
-          swAttribute.needsUpdate = true;
-          scalesAttribute.needsUpdate = true;
-          flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
-          flashMesh.material.uniforms.avatarPos.x = player.position.x;
-          flashMesh.material.uniforms.avatarPos.y = player.position.y;
-          flashMesh.material.uniforms.avatarPos.z = player.position.z;
+            idAttribute.needsUpdate = true;
+            positionsAttribute.needsUpdate = true;
+            swAttribute.needsUpdate = true;
+            scalesAttribute.needsUpdate = true;
+            flashMesh.material.uniforms.cameraBillboardQuaternion.value.copy(camera.quaternion);
+            flashMesh.material.uniforms.avatarPos.x = player.position.x;
+            flashMesh.material.uniforms.avatarPos.y = player.position.y;
+            flashMesh.material.uniforms.avatarPos.z = player.position.z;
 
-          //#################################### handle pixel #######################################
-          for(let i = 0; i < pixelParticleCount; i++){
-            if(pixelOpacityAttribute.getX(i)>0){
-              pixelScaleAttribute.setX(i,pixelScaleAttribute.getX(i)-0.01);
-              pixelOpacityAttribute.setX(i,pixelOpacityAttribute.getX(i)-(0.01+Math.random()*0.03));
-              pixelPositionAttribute.setY(i,pixelPositionAttribute.getY(i)+0.02);
+            //#################################### handle pixel #######################################
+            for(let i = 0; i < pixelParticleCount; i++){
+              if(pixelOpacityAttribute.getX(i)>0){
+                pixelScaleAttribute.setX(i,pixelScaleAttribute.getX(i)-0.01);
+                pixelOpacityAttribute.setX(i,pixelOpacityAttribute.getX(i)-(0.01+Math.random()*0.03));
+                pixelPositionAttribute.setY(i,pixelPositionAttribute.getY(i)+0.02);
+              }
+                  
+              else
+                pixelOpacityAttribute.setX(i,0);
             }
-                
-            else
-              pixelOpacityAttribute.setX(i,0);
-          }
-          pixelOpacityAttribute.needsUpdate = true;
-          pixelPositionAttribute.needsUpdate = true;
-          pixelScaleAttribute.needsUpdate = true;
-          group.position.copy(player.position);
+            pixelOpacityAttribute.needsUpdate = true;
+            pixelPositionAttribute.needsUpdate = true;
+            pixelScaleAttribute.needsUpdate = true;
+            group.position.copy(player.position);
 
-          if(startEffectTime > 0) {
+
             if (startEffectTime >= timestamp) {
               bodyMeshUniforms.isHealing.value = true;
               bodyMeshUniforms.rimStrength.value = 0.1;
@@ -440,12 +439,33 @@ export default () => {
             bodyMeshUniforms.eye.value.copy(camera.position);
             bodyMeshUniforms.playerQuaternion.value.copy(player.quaternion);
             bodyMeshUniforms.rimStrength.value *= 1.15;
+
+            if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
+              bodyMeshUniforms.isHealing.value = false;
+              startEffectTime = -1;
+            }
+          }
+          else {
+            flashMesh.visible = false;
+            group.visible = false;
           }
           
-          if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
-            bodyMeshUniforms.isHealing.value = false;
-            startEffectTime = -1;
-          }
+
+          // if(startEffectTime > 0) {
+          //   if (startEffectTime >= timestamp) {
+          //     bodyMeshUniforms.isHealing.value = true;
+          //     bodyMeshUniforms.rimStrength.value = 0.1;
+          //   }
+          //   bodyMeshUniforms.uTime.value = timestamp / 1000;
+          //   bodyMeshUniforms.eye.value.copy(camera.position);
+          //   bodyMeshUniforms.playerQuaternion.value.copy(player.quaternion);
+          //   bodyMeshUniforms.rimStrength.value *= 1.15;
+          // }
+          
+          // if (startEffectTime > 0 && bodyMeshUniforms.rimStrength.value > 10) {
+          //   bodyMeshUniforms.isHealing.value = false;
+          //   startEffectTime = -1;
+          // }
           
 
           app.updateMatrixWorld();  
