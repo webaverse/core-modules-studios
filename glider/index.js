@@ -57,7 +57,16 @@ export default () => {
                   );
                   vec4 noise = texture2D(noiseTexture, texUv);
                   float noiseScale = 0.1;
-                  transformed.y += noise.r * noiseScale;
+                  float fl = smoothstep(2.5, 2., transformed.x);
+                  float fr = smoothstep(-2.5, -2., transformed.x);
+                  float ff = smoothstep(-1.3, -.8, transformed.z);
+                  float fb = smoothstep(2.9, 2.4, transformed.z);
+                  float f = min(fl, fr);
+                  f = min(f, ff);
+                  f = min(f, fb);
+                  transformed.y += noise.r * noiseScale * f;
+                  // transformed.y += abs(transformed.x);
+                  // if (transformed.x > 2.) transformed.y += 1.;
                 `
               );
               console.log(shader.vertexShader)
