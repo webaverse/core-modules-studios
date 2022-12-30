@@ -190,17 +190,9 @@ export default () => {
           rotDegree += rotatedSpeed;
           localQuaternion.setFromAxisAngle(localRotationVetor, -Math.PI / 2);
           localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(localQuaternion);
-
-          leftTrailPos.set(
-            localPlayer.position.x + currentDir.x * gliderPosZ + gliderWidth * localVector2.x, 
-            localPlayer.position.y + gliderHeight,
-            localPlayer.position.z + currentDir.z * gliderPosZ + gliderWidth * localVector2.z
-          ) 
-          rightTrailPos.set(
-            localPlayer.position.x + currentDir.x * gliderPosZ - gliderWidth * localVector2.x, 
-            localPlayer.position.y + gliderHeight,
-            localPlayer.position.z + currentDir.z * gliderPosZ - gliderWidth * localVector2.z
-          ) 
+          
+          leftTrailPos.set(2.6, 0.6, 0).applyMatrix4(app.mainModel.matrixWorld);
+          rightTrailPos.set(-2.6, 0.6, 0).applyMatrix4(app.mainModel.matrixWorld);
 
           leftTrail.update(rotDegree, localVector2, leftTrailPos);
           rightTrail.update(rotDegree, localVector2, rightTrailPos);
