@@ -32,7 +32,7 @@ export default () => {
       });
       glider.scene.traverse(o => {
         if (o.isMesh) {
-          if (o.name === 'Glider001') {
+          if (o.name === 'Fabric') {
             const mapTexture = o.material.map;
             o.material = new THREE.MeshStandardMaterial( {map: mapTexture} );
             o.material.onBeforeCompile = shader => {
@@ -57,7 +57,7 @@ export default () => {
                   );
                   vec4 noise = texture2D(noiseTexture, texUv);
                   float noiseScale = 0.1;
-                  transformed.y -= noise.r * noiseScale;
+                  transformed.y += noise.r * noiseScale;
                 `
               );
               console.log(shader.vertexShader)
