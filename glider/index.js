@@ -84,14 +84,10 @@ export default () => {
                   f = min(f, ff);
                   f = min(f, fb);
                   transformed.y += noise.r * noiseScale * f;
-                  // transformed.y += abs(transformed.x);
-                  // if (transformed.x > 2.) transformed.y += 1.;
                 `
               );
-              console.log(shader.vertexShader)
             };
           }
-          // console.log(o);
         }
       });
       app.add(glider.scene);
@@ -207,8 +203,6 @@ export default () => {
           leftTrail.visible = false;
           rightTrail.visible = false;
         }
-
-        
 
         app.updateMatrixWorld();
       });
