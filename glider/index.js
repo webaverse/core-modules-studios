@@ -48,6 +48,7 @@ export default () => {
           const {gltfLoader} = useLoaders();
           gltfLoader.load(u, accept, function onprogress() {}, reject);
       });
+      app.mainModel = glider.scene;
       glider.scene.traverse(o => {
         if (o.isMesh) {
           if (o.name === 'Fabric') {
