@@ -4,7 +4,7 @@ import _createTrailMaterial from './trail-material.js';
 import {
 	Mesh,
 } from 'three';
-const planeNumber = 100;
+const planeNumber = 50;
 const trailWidth = 0.1;
 const point1 = new THREE.Vector3();
 const point2 = new THREE.Vector3();
@@ -54,6 +54,14 @@ class Trail extends Mesh {
     }
     planeGeometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     return planeGeometry;
+  }
+  
+  resetTrail(centerPos) {
+    for (let i = 0; i < this.positionArray.length / 3; i ++) {
+      this.positionArray[i * 3 + 0] = centerPos.x;
+      this.positionArray[i * 3 + 1] = centerPos.y;
+      this.positionArray[i * 3 + 2] = centerPos.z;
+    }
   }
 
   update(rotDegree, rotDir, centerPos) {

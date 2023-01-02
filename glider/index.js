@@ -99,9 +99,9 @@ export default () => {
     
     /****************************************************** trail ******************************************************/
     // gliderInfo
-    let gliderWidth = 2.65;
-    let gliderHeight = 0.72;
-    let gliderPosZ = 0.2;
+    let gliderWidth = 2.6;
+    let gliderHeight = 0.6;
+    let gliderPosZ = 0;
     const _setGliderInfo = (value) => {
       gliderWidth = value.width;
       gliderHeight = value.height;
@@ -154,6 +154,7 @@ export default () => {
       
       let rotDegree = 0.;
       let trailAlpha = 0; 
+      let resetTrailPosition = false;
       useFrame(({timestamp}) => {
         
         // get player direction
@@ -163,20 +164,20 @@ export default () => {
 
         // get player speed
         const currentSpeed = localVector3.set(localPlayer.avatar.velocity.x, 0, localPlayer.avatar.velocity.z).length();
-        const fallingSpeed = 0 - localPlayer.characterPhysics.velocity.y;
-
         
         const hasGlider = localPlayer.hasAction('glider');
-        if (hasGlider && currentSpeed > 0) {
-          trailAlpha = 1;
+        const sprintSpeed = 10;
+        if (hasGlider && currentSpeed > sprintSpeed) {
+          if (trailAlpha < 1) {
+            resetTrailPosition = true;
+            trailAlpha = 1;
+          }          
         }
         else {
           if (trailAlpha > 0) {
-            trailAlpha -= 0.01;
+            trailAlpha = 0;
           }
         }
-
-
 
         if (trailAlpha > 0 && hasGlider) {
           leftTrail.visible = true;
@@ -187,8 +188,14 @@ export default () => {
           localQuaternion.setFromAxisAngle(localRotationVetor, -Math.PI / 2);
           localVector2.set(currentDir.x, currentDir.y, currentDir.z).applyQuaternion(localQuaternion);
           
-          leftTrailPos.set(2.6, 0.6, 0).applyMatrix4(app.mainModel.matrixWorld);
-          rightTrailPos.set(-2.6, 0.6, 0).applyMatrix4(app.mainModel.matrixWorld);
+          leftTrailPos.set(gliderWidth, gliderHeight, gliderPosZ).applyMatrix4(app.mainModel.matrixWorld);
+          rightTrailPos.set(-gliderWidth, gliderHeight, gliderPosZ).applyMatrix4(app.mainModel.matrixWorld);
+
+          if (resetTrailPosition) {
+            leftTrail.resetTrail(leftTrailPos);
+            rightTrail.resetTrail(rightTrailPos);
+            resetTrailPosition = false;
+          }
 
           leftTrail.update(rotDegree, localVector2, leftTrailPos);
           rightTrail.update(rotDegree, localVector2, rightTrailPos);
@@ -198,6 +205,7 @@ export default () => {
 
           leftTrail.material.uniforms.uOpacity.value = trailAlpha;
           rightTrail.material.uniforms.uOpacity.value = trailAlpha;
+
         }
         else {
           leftTrail.visible = false;
